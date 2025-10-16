@@ -52,7 +52,7 @@ public class NovelBase : MonoBehaviour
     void NameTextChange()
     {
         //_csvDataListの行の先頭のデータを表示させる
-        _nameText.text = _csvDataList[0][0];
+        _nameText.text = _csvDataList[_rowsCount][0];
     }
 
     //メッセージのデータをText(TextMeshPro)に表示させる
