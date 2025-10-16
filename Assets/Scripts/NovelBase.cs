@@ -12,9 +12,14 @@ public class NovelBase : MonoBehaviour
     //CSVの文章を入れるためのリスト
     List<string[]> _csvDataList = new List<string[]>();
     //シーンに配置したTextオブジェクトを取得
-    public Text NameText;
+    [SerializeField]
+    private TextMeshProUGUI _nameText;
     //シーンに配置したText(TextMeshPro)オブジェクトを取得
-    public TextMeshProUGUI MessageText;
+    [SerializeField]
+    private TextMeshProUGUI _messageText;
+    //シナリオエンドフラッグ
+    public bool ScenarioEndFlag = false;
+    private int _rowsCount = 0;
 
     void Start()
     {
@@ -29,18 +34,16 @@ public class NovelBase : MonoBehaviour
             string line = reader.ReadLine();//一行ずつ読み込む
             _csvDataList.Add(line.Split(','));// , 区切りでリストに追加
         }
-
-        //読み込んだCSVデータを_csvDataList[列][行]で出力できる
-
-        //CSVデータのA1のセルの中に入っているデータを出力
-        Debug.Log(_csvDataList[1][0]);
-        //CSVデータのＢ1のセルの中に入っているデータを出力
-        Debug.Log(_csvDataList[1][1]);
     }
 
     // Update is called once per frame
     void Update()
     {
+        //該当のシナリオが読み込み終わったらこれ以上処理を行わない
+        if (ScenarioEndFlag)
+        {
+            return;
+        }
         NameTextChange();
         MessageTextChange();
     }
@@ -49,7 +52,7 @@ public class NovelBase : MonoBehaviour
     void NameTextChange()
     {
         //_csvDataListの行の先頭のデータを表示させる
-        NameText.text = _csvDataList[0][0];
+        _nameText.text = _csvDataList[0][0];
     }
 
     //メッセージのデータをText(TextMeshPro)に表示させる
@@ -86,7 +89,7 @@ public class NovelBase : MonoBehaviour
             MessageTextCount++;
 
             //文字列を表示させる
-            MessageText.text = ViewStringData;
+            _messageText.text = ViewStringData;
         }
 
         //文字送り用に秒数をカウントする
