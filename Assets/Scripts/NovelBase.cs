@@ -11,15 +11,38 @@ public class NovelBase : MonoBehaviour
     TextAsset _csvFile;
     //CSVの文章を入れるためのリスト
     List<string[]> _csvDataList = new List<string[]>();
-    //シーンに配置したTextオブジェクトを取得
+
+    [SerializeField]
+    private int _messageCount = 0;
+    private int _rowsCount = 0;
+    private float _countTime = 0f;
+    [Header("メッセージの文字送り時間を変更する変数")]
+    [SerializeField]
+    private float _messageStopTime = 0.1f;
+    [Header("名前表示用のTextMeshProUGUIを入れる変数")]
     [SerializeField]
     private TextMeshProUGUI _nameText;
-    //シーンに配置したText(TextMeshPro)オブジェクトを取得
+
+    [Header("メッセージ表示用のTextMeshProUGUIを入れる変数")]
+    //キャラクターのセリフを表示させるTextボックス
     [SerializeField]
     private TextMeshProUGUI _messageText;
+    [Header("選択肢を表示させるPrefabを入れる変数")]
+    //選択肢表示用のオブジェクトを入れる変数
+    [SerializeField]
+    private GameObject _selectCommandObject;
+
+    //メッセージを止めるためのフラグ
+    private bool _messageStopFlag = false;
+
+    //コマンドチェックフラグ
+    private bool _commandCheckFlag = false;
+
+    private List<string[]> _getSelectCommand = new List<string[]>();
+
+    [Header("シナリオが終了したかの判定を行うフラグ")]
     //シナリオエンドフラッグ
     public bool ScenarioEndFlag = false;
-    private int _rowsCount = 0;
 
     void Start()
     {
@@ -37,62 +60,171 @@ public class NovelBase : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    private void Update()
     {
         //該当のシナリオが読み込み終わったらこれ以上処理を行わない
         if (ScenarioEndFlag)
         {
             return;
         }
-        NameTextChange();
-        MessageTextChange();
-    }
 
-    //名前のデータをTextに表示させる
-    void NameTextChange()
-    {
-        //_csvDataListの行の先頭のデータを表示させる
-        _nameText.text = _csvDataList[_rowsCount][0];
-    }
+        if (_commandCheckFlag == false)
+        {
+            GetCommand();
+        }
 
-    //メッセージのデータをText(TextMeshPro)に表示させる
-    //何秒経過したか累積時間をカウントする変数
-    public float CountTime = 0f;
-    //次の文字を表示するまでに何秒かけるか
-    public float NextTextTime = 0.3f;
-    //実際に表示させる文字データ
-    public string ViewStringData;
-    //今、何文字目を表示しているのか判断するための値
-    int MessageTextCount = 0;
-
-    void MessageTextChange()
-    {
-        //メッセージテキストを一文字ずつ表示させる
-
-        //_csvDataList[0][1]に入っているデータの長さ(Length)がMessageTextCountの数以上なら処理を止める
-        if (_csvDataList[0][1].Length <= MessageTextCount)
+        //メッセージ表示が完全に終了しているかつクリックされたら次のテキストに変更する
+        //表示テキスト以上になった場合は表示処理を止める
+        if (_rowsCount >= _csvDataList.Count || _messageCount >= _csvDataList[_rowsCount][2].Length || _messageStopFlag)
         {
             return;
         }
 
-        //一定時間(NextTextTime秒まで)経過したか判断する
-        if (NextTextTime <= CountTime)
+        //名前の表示処理を呼び出す
+        NameTextView();
+
+        //メッセージ表示処理を呼び出す
+        MessageTextView();
+    }
+
+    private void NameTextView()
+    {
+        _nameText.text = _csvDataList[_rowsCount][1];
+    }
+
+    private void MessageTextView()
+    {
+        //一文字ずつ文字を表示させる
+        if (_messageStopTime <= _countTime)
         {
-            //経過時間をリセットする
-            CountTime = 0f;
-
-            //次の文字を表示する処理
-            //_csvDataListの[行][列][データの先頭から何文字目を表示するか]
-            ViewStringData += _csvDataList[0][1][MessageTextCount];
-
-            //MessageTextCountの値を加算(次の文字を参照する)
-            MessageTextCount++;
-
-            //文字列を表示させる
-            _messageText.text = ViewStringData;
+            _countTime = 0f;
+            _messageText.text += _csvDataList[_rowsCount][2][_messageCount];
+            _messageCount++;
         }
 
-        //文字送り用に秒数をカウントする
-        CountTime += Time.deltaTime;
+        //文字送り用に秒数を数える
+        _countTime += Time.deltaTime;
+    }
+
+    private void GetCommand()
+    {
+        //もしもコマンドがあった場合、選択肢表示をする
+        string commandCheck = _csvDataList[_rowsCount][0];
+
+        //コマンドが入力されているか確認する
+        switch (commandCheck)
+        {
+            //選択肢を2つ表示させる
+            case "Select2":
+                SelectCommand(2);
+                break;
+
+            case "Select1":
+                SelectCommand(1);
+                break;
+
+            //指定のシナリオまで飛ぶ
+            case "JumpCommand":
+                JumpMessageRow(_csvDataList[_rowsCount][1]);
+                break;
+
+            //シナリオが終わったら処理を止める
+            case "Scenario_End":
+                ScenarioEndFlag = true;
+                break;
+
+            //もしコマンドじゃなかったらリセットする
+            default:
+                //メッセージテキストの表示を空白に変更する
+                _messageText.text = "";
+                break;
+        }
+        //コマンドの確認を終えたのでFlagをtrueにする
+        _commandCheckFlag = true;
+    }
+
+    private void JumpMessageRow(string SelectCommandValue)
+    {
+        //JumpCommandの飛び先を探したいので_Startを付けた文字列で検索する
+        var jumpCommand = SelectCommandValue + "_Start";
+
+        //JumpCommand_A
+        for (var i = 0; i < _csvDataList.Count; ++i)
+        {
+            if (_csvDataList[i][0] == jumpCommand)
+            {
+                _rowsCount = i;
+            }
+        }
+        _rowsCount += 1;
+        Debug.Log(_rowsCount);
+        _messageStopFlag = false;
+        CommandClear();
+    }
+
+    private void CommandClear()
+    {
+        _commandCheckFlag = false;
+        _selectCommandObject.SetActive(false);
+        _messageText.text = "";
+    }
+
+    private void SelectCommand(int SelectCommandValue)
+    {
+        //SelectCommandObjectの子オブジェクトの選択肢を引数nつを取得して表示させる
+        //メッセージがこれ以上流れないようにフラグをtrueに変更する
+        _messageStopFlag = true;
+
+        _getSelectCommand.Clear();
+
+        //子オブジェクトを一度全て非表示にする
+        foreach (Transform child in _selectCommandObject.transform)
+        {
+            child.gameObject.SetActive(false);
+        }
+
+        //指定の数の子オブジェクトを取得する
+        for (var i = 0; i < SelectCommandValue; ++i)
+        {
+            //一つ下の段を見る
+            _rowsCount++;
+            var selectObject = _selectCommandObject.transform.GetChild(i);
+            selectObject.GetChild(0).gameObject.GetComponent<TextMeshProUGUI>().text = _csvDataList[_rowsCount][1];
+            _getSelectCommand.Add(_csvDataList[_rowsCount]);
+            selectObject.gameObject.SetActive(true);
+        }
+        //表示させた
+        _selectCommandObject.SetActive(true);
+    }
+
+    public void NextMessageView()
+    {
+        //もし文字が表示と途中なら最後まで表示させる
+        if (_messageCount < _csvDataList[_rowsCount][2].Length)
+        {
+            _messageText.text = _csvDataList[_rowsCount][2];
+            _messageCount = _csvDataList[_rowsCount][2].Length;
+            return;
+        }
+
+        //読みこんだメッセージの行以下ならカウントを追加する
+        if (_rowsCount >= _csvDataList.Count || _messageStopFlag)
+        {
+            return;
+        }
+        //次の行に移る
+        _rowsCount++;
+        //Messageを先頭から出す
+        _messageCount = 0;
+        //次のフラグを確認する
+        _commandCheckFlag = false;
+    }
+
+    public void SelectCommandReturnValue(int SelectCommandValue)
+    {
+        Debug.Log(_getSelectCommand[SelectCommandValue][3]);
+        //押されたボタンの位置を情報として表示する
+        //押されたボタンの位置を情報として渡す
+        JumpMessageRow(_getSelectCommand[SelectCommandValue][3]);
     }
 }
