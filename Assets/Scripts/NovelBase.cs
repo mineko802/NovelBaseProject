@@ -114,12 +114,21 @@ public class NovelBase : MonoBehaviour
         switch (commandCheck)
         {
             //選択肢を2つ表示させる
+
+            case "Select1":
+                SelectCommand(1);
+                break;
+
             case "Select2":
                 SelectCommand(2);
                 break;
 
-            case "Select1":
-                SelectCommand(1);
+            case "Select3":
+                SelectCommand(3);
+                break;
+
+            case "Select4":
+                SelectCommand(4);
                 break;
 
             //指定のシナリオまで飛ぶ
