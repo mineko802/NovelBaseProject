@@ -3,10 +3,8 @@
 ,男,どこここ,
 ,,目の前に扉があることに気がつく,
 Select1,,,
-,扉を開ける,JumpCommand,Jump
-Jump_Start,,,
-JumpCommand,Jump_Main_ReDirect,,
-Jump_Main_ReDirect_Start,,,
+,扉を開ける,JumpCommand,Jump_Main
+Jump_Main_Start,,,
 ,,普通のリビングのような部屋が広がる,
 ,,目の前の扉が開く,
 ,女,おはよう,
