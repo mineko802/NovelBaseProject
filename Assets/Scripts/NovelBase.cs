@@ -131,6 +131,10 @@ public class NovelBase : MonoBehaviour
                 SelectCommand(4);
                 break;
 
+            case "Select5":
+                SelectCommand(5);
+                break;
+
             //指定のシナリオまで飛ぶ
             case "JumpCommand":
                 JumpMessageRow(_csvDataList[_rowsCount][1]);
