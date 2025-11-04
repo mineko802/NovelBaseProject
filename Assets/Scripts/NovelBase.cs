@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class NovelBase : MonoBehaviour
 {
@@ -114,25 +115,12 @@ public class NovelBase : MonoBehaviour
         switch (commandCheck)
         {
             //選択肢を2つ表示させる
-
-            case "Select1":
-                SelectCommand(1);
-                break;
-
             case "Select2":
                 SelectCommand(2);
                 break;
 
-            case "Select3":
-                SelectCommand(3);
-                break;
-
-            case "Select4":
-                SelectCommand(4);
-                break;
-
-            case "Select5":
-                SelectCommand(5);
+            case "Select1":
+                SelectCommand(1);
                 break;
 
             //指定のシナリオまで飛ぶ
@@ -153,6 +141,32 @@ public class NovelBase : MonoBehaviour
         }
         //コマンドの確認を終えたのでFlagをtrueにする
         _commandCheckFlag = true;
+    }
+
+    private void JumpMessageRow(string SelectCommandValue)
+    {
+        //JumpCommandの飛び先を探したいので_Startを付けた文字列で検索する
+        var jumpCommand = SelectCommandValue + "_Start";
+
+        //JumpCommand_A
+        for (var i = 0; i < _csvDataList.Count; ++i)
+        {
+            if (_csvDataList[i][0] == jumpCommand)
+            {
+                _rowsCount = i;
+            }
+        }
+        _rowsCount += 1;
+        Debug.Log(_rowsCount);
+        _messageStopFlag = false;
+        CommandClear();
+    }
+
+    private void CommandClear()
+    {
+        _commandCheckFlag = false;
+        _selectCommandObject.SetActive(false);
+        _messageText.text = "";
     }
 
     private void SelectCommand(int SelectCommandValue)
@@ -181,33 +195,6 @@ public class NovelBase : MonoBehaviour
         }
         //表示させた
         _selectCommandObject.SetActive(true);
-    }
-
-    private void JumpMessageRow(string SelectCommandValue)
-    {
-        //JumpCommandの飛び先を探したいので_Startを付けた文字列で検索する
-        var jumpCommand = SelectCommandValue + "_Start";
-
-        //JumpCommand_A
-        for (var i = 0; i < _csvDataList.Count; ++i)
-        {
-            if (_csvDataList[i][0] == jumpCommand)
-            {
-                _rowsCount = i;
-            }
-        }
-        _rowsCount += 1;
-        Debug.Log(_rowsCount);
-        _messageStopFlag = false;
-        CommandClear();
-    }
-
-
-    private void CommandClear()
-    {
-        _commandCheckFlag = false;
-        _selectCommandObject.SetActive(false);
-        _messageText.text = "";
     }
 
     public void NextMessageView()
