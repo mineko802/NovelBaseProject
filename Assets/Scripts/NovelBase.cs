@@ -43,6 +43,7 @@ public class NovelBase : MonoBehaviour
     [Header("シナリオが終了したかの判定を行うフラグ")]
     //シナリオエンドフラッグ
     public bool ScenarioEndFlag = false;
+    BackgroundController backgroundController;
 
     void Start()
     {
@@ -115,12 +116,29 @@ public class NovelBase : MonoBehaviour
         switch (commandCheck)
         {
             //選択肢を2つ表示させる
+
+            case "Select1":
+                SelectCommand(1);
+                break;
+
             case "Select2":
                 SelectCommand(2);
                 break;
 
-            case "Select1":
-                SelectCommand(1);
+            case "Select3":
+                SelectCommand(3);
+                break;
+
+            case "Select4":
+                SelectCommand(4);
+                break;
+
+            case "Select5":
+                SelectCommand(5);
+                break;
+
+            case "Load":
+                LoadBackground(_csvDataList[_rowsCount][1]);
                 break;
 
             //指定のシナリオまで飛ぶ
@@ -157,7 +175,6 @@ public class NovelBase : MonoBehaviour
             }
         }
         _rowsCount += 1;
-        Debug.Log(_rowsCount);
         _messageStopFlag = false;
         CommandClear();
     }
@@ -222,9 +239,14 @@ public class NovelBase : MonoBehaviour
 
     public void SelectCommandReturnValue(int SelectCommandValue)
     {
-        Debug.Log(_getSelectCommand[SelectCommandValue][3]);
-        //押されたボタンの位置を情報として表示する
-        //押されたボタンの位置を情報として渡す
         JumpMessageRow(_getSelectCommand[SelectCommandValue][3]);
+    }
+
+    public void LoadBackground(string Background)
+    {
+        if (Background == "Room")
+        {
+            backgroundController.LoadRoom();
+        }
     }
 }
